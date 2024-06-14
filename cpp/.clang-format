@@ -1,0 +1,9 @@
+AllowShortFunctionsOnASingleLine: None
+BasedOnStyle: LLVM
+ColumnLimit: 0
+IndentWidth: 4
+# AccessModifierOffset: g
+BinPackArguments: false
+BinPackParameters: false
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
