@@ -1,0 +1,31 @@
+{
+  "name": "ts",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@eslint/js": "^9.4.0",
+    "@types/jest": "^29.5.12",
+    "eslint": "^9.4.0",
+    "globals": "^15.4.0",
+    "prettier": "^3.3.2",
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^7.13.0"
+  },
+  "dependencies": {
+    "ts-jest": "^29.1.4"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": false,
+    "trailingComma": "all",
+    "arrayExpression": "always-multiline",
+    "arrayExpand": true
+  }
+}
