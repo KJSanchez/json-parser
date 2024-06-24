@@ -8,127 +8,129 @@
 
 using std::string, std::vector, std::pair, std::variant;
 
+using token_tt = json::token_tt;
+
 TEST_CASE("lexer") {
     vector<pair<string, json::tokens_t>> testcases = {
         {
             R"("")",
             {
-                {"string", ""},
+                {token_tt::STRING, ""},
             },
         },
         {
             R"("string")",
             {
-                {"string", "string"},
+                {token_tt::STRING, "string"},
             },
         },
         {
             "1",
             {
-                {"number", 1},
+                {token_tt::NUMBER, 1},
             },
         },
         {
             "true",
             {
 
-                {"boolean", true},
+                {token_tt::BOOLEAN, true},
             },
         },
         {
             "false",
             {
 
-                {"boolean", false},
+                {token_tt::BOOLEAN, false},
             },
         },
         {
             "null",
             {
 
-                {"nullptr_t", nullptr},
+                {token_tt::NULLPTR_T, nullptr},
             },
         },
         {
             "[]",
             {
-                {"[", "["},
-                {"]", "]"},
+                {token_tt::OPEN_BRACKET, "["},
+                {token_tt::CLOSE_BRACKET, "]"},
             },
         },
         {
             "[1]",
             {
-                {"[", "["},
-                {"number", 1},
-                {"]", "]"},
+                {token_tt::OPEN_BRACKET, "["},
+                {token_tt::NUMBER, 1},
+                {token_tt::CLOSE_BRACKET, "]"},
             },
         },
         {
             "[1, 2]",
             {
-                {"[", "["},
-                {"number", 1},
-                {",", ","},
-                {"number", 2},
-                {"]", "]"},
+                {token_tt::OPEN_BRACKET, "["},
+                {token_tt::NUMBER, 1},
+                {token_tt::COMMA, ","},
+                {token_tt::NUMBER, 2},
+                {token_tt::CLOSE_BRACKET, "]"},
             },
         },
         {
             "{}",
             {
-                {"{", "{"},
-                {"}", "}"},
+                {token_tt::OPEN_BRACE, "{"},
+                {token_tt::CLOSE_BRACE, "}"},
             },
         },
         {
             R"({"key": "value"})",
             {
-                {"{", "{"},
-                {"string", "key"},
-                {":", ":"},
-                {"string", "value"},
-                {"}", "}"},
+                {token_tt::OPEN_BRACE, "{"},
+                {token_tt::STRING, "key"},
+                {token_tt::COLON, ":"},
+                {token_tt::STRING, "value"},
+                {token_tt::CLOSE_BRACE, "}"},
             },
         },
         {
             R"({"key": "value", "key2": "value2"})",
             {
-                {"{", "{"},
-                {"string", "key"},
-                {":", ":"},
-                {"string", "value"},
-                {",", ","},
-                {"string", "key2"},
-                {":", ":"},
-                {"string", "value2"},
-                {"}", "}"},
+                {token_tt::OPEN_BRACE, "{"},
+                {token_tt::STRING, "key"},
+                {token_tt::COLON, ":"},
+                {token_tt::STRING, "value"},
+                {token_tt::COMMA, ","},
+                {token_tt::STRING, "key2"},
+                {token_tt::COLON, ":"},
+                {token_tt::STRING, "value2"},
+                {token_tt::CLOSE_BRACE, "}"},
             },
         },
         {
 
             R"({"key": {}})",
             {
-                {"{", "{"},
-                {"string", "key"},
-                {":", ":"},
-                {"{", "{"},
-                {"}", "}"},
-                {"}", "}"},
+                {token_tt::OPEN_BRACE, "{"},
+                {token_tt::STRING, "key"},
+                {token_tt::COLON, ":"},
+                {token_tt::OPEN_BRACE, "{"},
+                {token_tt::CLOSE_BRACE, "}"},
+                {token_tt::CLOSE_BRACE, "}"},
             },
         },
         {
             R"({"key": {"key": "value"}})",
             {
-                {"{", "{"},
-                {"string", "key"},
-                {":", ":"},
-                {"{", "{"},
-                {"string", "key"},
-                {":", ":"},
-                {"string", "value"},
-                {"}", "}"},
-                {"}", "}"},
+                {token_tt::OPEN_BRACE, "{"},
+                {token_tt::STRING, "key"},
+                {token_tt::COLON, ":"},
+                {token_tt::OPEN_BRACE, "{"},
+                {token_tt::STRING, "key"},
+                {token_tt::COLON, ":"},
+                {token_tt::STRING, "value"},
+                {token_tt::CLOSE_BRACE, "}"},
+                {token_tt::CLOSE_BRACE, "}"},
             },
         },
     };
