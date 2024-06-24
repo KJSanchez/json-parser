@@ -147,23 +147,32 @@ class Parser {
 
         auto json_array = json_t::array();
         while (current_token.type != token_tt::CLOSE_BRACKET) {
-            if (current_token.type == token_tt::STRING) {
+            using enum token_tt;
+
+            switch (current_token.type) {
+            case (token_tt::STRING):
                 json_array.push_back(std::get<string>(current_token.value));
                 advance();
-            } else if (current_token.type == token_tt::NUMBER) {
+                break;
+            case (token_tt::NUMBER):
                 json_array.push_back(std::get<int>(current_token.value));
                 advance();
-            } else if (current_token.type == token_tt::NULLPTR_T) {
+                break;
+            case (token_tt::NULLPTR_T):
                 json_array.push_back(nullptr);
                 advance();
-            } else if (current_token.type == token_tt::BOOLEAN) {
+                break;
+            case (token_tt::BOOLEAN):
                 json_array.push_back(std::get<bool>(current_token.value));
                 advance();
-            } else if (current_token.type == token_tt::OPEN_BRACKET) {
+                break;
+            case (token_tt::OPEN_BRACKET):
                 json_array.push_back(array());
-            } else if (current_token.type == token_tt::OPEN_BRACE) {
+                break;
+            case (token_tt::OPEN_BRACE):
                 json_array.push_back(object());
-            } else {
+                break;
+            default:
                 throw ParseError();
             }
 
