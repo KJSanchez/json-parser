@@ -181,27 +181,35 @@ class Parser {
         auto json_object = json_t::object_t();
 
         while (current_token.type != token_tt::CLOSE_BRACE) {
+            using enum token_tt;
             string key = std::get<string>(expect(token_tt::STRING).value);
 
             expect(token_tt::COLON);
 
-            if (current_token.type == token_tt::STRING) {
+            switch (current_token.type) {
+            case (token_tt::STRING):
                 json_object[key] = std::get<string>(current_token.value);
                 advance();
-            } else if (current_token.type == token_tt::NUMBER) {
+                break;
+            case (token_tt::NUMBER):
                 json_object[key] = std::get<int>(current_token.value);
                 advance();
-            } else if (current_token.type == token_tt::NULLPTR_T) {
+                break;
+            case (token_tt::NULLPTR_T):
                 json_object[key] = nullptr;
                 advance();
-            } else if (current_token.type == token_tt::BOOLEAN) {
+                break;
+            case (token_tt::BOOLEAN):
                 json_object[key] = std::get<bool>(current_token.value);
                 advance();
-            } else if (current_token.type == token_tt::OPEN_BRACKET) {
+                break;
+            case (token_tt::OPEN_BRACKET):
                 json_object[key] = array();
-            } else if (current_token.type == token_tt::OPEN_BRACE) {
+                break;
+            case (token_tt::OPEN_BRACE):
                 json_object[key] = object();
-            } else {
+                break;
+            default:
                 throw ParseError();
             }
 
@@ -220,23 +228,31 @@ class Parser {
         tokens = Lexer().tokenize(content);
         current_token = tokens.front();
         while (not tokens.empty()) {
-            if (current_token.type == token_tt::OPEN_BRACKET) {
+            using enum token_tt;
+            switch (current_token.type) {
+            case (token_tt::OPEN_BRACKET):
                 json = array();
-            } else if (current_token.type == token_tt::OPEN_BRACE) {
+                break;
+            case (token_tt::OPEN_BRACE):
                 json = object();
-            } else if (current_token.type == token_tt::STRING) {
+                break;
+            case (token_tt::STRING):
                 json = std::get<string>(current_token.value);
                 advance();
-            } else if (current_token.type == token_tt::NUMBER) {
+                break;
+            case (token_tt::NUMBER):
                 json = std::get<int>(current_token.value);
                 advance();
-            } else if (current_token.type == token_tt::BOOLEAN) {
+                break;
+            case (token_tt::BOOLEAN):
                 json = std::get<bool>(current_token.value);
                 advance();
-            } else if (current_token.type == token_tt::NULLPTR_T) {
+                break;
+            case (token_tt::NULLPTR_T):
                 json = nullptr;
                 advance();
-            } else {
+                break;
+            default:
                 if (tokens.empty()) {
                     break;
                 }
