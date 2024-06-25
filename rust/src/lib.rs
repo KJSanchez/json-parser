@@ -11,57 +11,39 @@ pub mod json {
 #[cfg(test)]
 mod tests {
     macro_rules! parser_tests {
-        ($($name:ident: $value:expr,)*) => {
+        ($($name:ident: $input:expr,)*) => {
             $(
                 #[test]
                 fn $name() {
-                    let (input, expected) = $value;
-                    assert_eq!(input, expected);
+                    let expected: serde_json::Value = serde_json::from_str($input).unwrap();
+                    let actual = crate::json::parse($input);
+                    assert_eq!(actual, expected);
                 }
             )*
         }
     }
+
     parser_tests! {
-        parser_0: (0, 0),
-        parser_1: (1, 1),
-        parser_2: (1, 1),
-        parser_3: (2, 2),
-        parser_4: (3, 3),
-        parser_5: (5, 5),
-        parser_6: (8, 8),
-    }
-
-    #[test]
-    fn test_parser() {
-        let testcases = [
-            "null",
-            "1",
-            "false",
-            "true",
-            r#""""#,
-            r#""rust""#,
-            "[]",
-            "[1]",
-            "[1, 2]",
-            "[1, []]",
-            "[1, [2, 3]]",
-            "[1, [2, 3], 4]",
-            "[1, [2, [3, 4]], 5]",
-            "{}",
-            r#"{"key": "value"}"#,
-            r#"{"key": "value", "key2": "value2"}"#,
-            r#"{"key": {}}"#,
-            r#"{"key": {"key": "value"}}"#,
-            r#"{"key": {"key": {}}}"#,
-            r#"{"key": {"key": {"key": "value"}}}"#,
-        ];
-
-        for testcase in testcases.iter() {
-            let expected: serde_json::Value = serde_json::from_str(testcase).unwrap();
-
-            let actual = crate::json::parse(testcase);
-            assert_eq!(actual, expected);
-        }
+        parser_00: "null",
+        parser_01: "1",
+        parser_02: "false",
+        parser_03: "true",
+        parser_04: r#""""#,
+        parser_05: r#""rust""#,
+        parser_06: "[]",
+        parser_07: "[1]",
+        parser_08: "[1, 2]",
+        parser_09: "[1, []]",
+        parser_10: "[1, [2, 3]]",
+        parser_11: "[1, [2, 3], 4]",
+        parser_12: "[1, [2, [3, 4]], 5]",
+        parser_13: "{}",
+        parser_14: r#"{"key": "value"}"#,
+        parser_15: r#"{"key": "value", "key2": "value2"}"#,
+        parser_16: r#"{"key": {}}"#,
+        parser_17: r#"{"key": {"key": "value"}}"#,
+        parser_18: r#"{"key": {"key": {}}}"#,
+        parser_19: r#"{"key": {"key": {"key": "value"}}}"#,
     }
 
     #[test]
