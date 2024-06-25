@@ -10,6 +10,27 @@ pub mod json {
 
 #[cfg(test)]
 mod tests {
+    macro_rules! parser_tests {
+        ($($name:ident: $value:expr,)*) => {
+            $(
+                #[test]
+                fn $name() {
+                    let (input, expected) = $value;
+                    assert_eq!(input, expected);
+                }
+            )*
+        }
+    }
+    parser_tests! {
+        parser_0: (0, 0),
+        parser_1: (1, 1),
+        parser_2: (1, 1),
+        parser_3: (2, 2),
+        parser_4: (3, 3),
+        parser_5: (5, 5),
+        parser_6: (8, 8),
+    }
+
     #[test]
     fn test_parser() {
         let testcases = [
