@@ -2,8 +2,82 @@
 extern crate serde_json;
 
 pub mod json {
+    pub fn parse_object(tokens: Vec<Token>) -> serde_json::Value {
+        let mut obj = serde_json::Map::new();
+        let key = "key".to_string();
+        obj[&key] = serde_json::Value::Bool(false);
+        return serde_json::Value::Object(obj);
+    }
+
+    pub fn parse_array(mut tokens: Vec<Token>) -> serde_json::Value {
+        let mut vec: Vec<serde_json::Value> = vec![];
+        while true && tokens.len() != 0{
+            let first_token = tokens.remove(0);
+            match first_token {
+                Token::LBrace(_) => {
+                    continue;
+                }
+                Token::Comma(_) => {
+                    continue;
+                }
+                Token::Number(number) => {
+                    let item = serde_json::Value::Number(number);
+                    vec.push(item);
+                }
+                Token::String(string) => {
+                    let item = serde_json::Value::String(string);
+                    vec.push(item);
+                }
+                Token::RBrace(_) => {
+                    return serde_json::json!(vec);
+                }
+
+            }
+
+        }
+        while tokens.first() == Token::LBrace(ref value) if value {
+            let next_token = tokens.remove(0);
+            vec.push(next_token);
+        }
+        return serde_json::json!(vec);
+        // keturn serde_json::Value::Array(vec);
+    }
+
     pub fn parse(content: &str) -> serde_json::Value {
-        return serde_json::from_str(content).unwrap();
+        // return serde_json::from_str(&content).unwrap();
+
+        let mut tokens = tokenize(&content);
+        let next_token = &tokens;
+        match &tokens[0] {
+            Token::Null(_) => {
+                return serde_json::Value::Null;
+            }
+            Token::Number(x) => {
+                let val = serde_json::Number::from(*x);
+                return serde_json::Value::Number(val);
+            }
+            Token::Boolean(x) => {
+                return serde_json::Value::Bool(*x);
+            }
+            Token::String(x) => {
+                return serde_json::Value::String(x.to_string());
+            }
+            // Token::LBrace()
+            Token::LBracket(_) => {
+                return parse_array(tokens);
+            }
+            _ => {
+                panic!("not yet implemented");
+            }
+        }
+        while !tokens.is_empty() {
+            let front = tokens.remove(0);
+            match &tokens[0] {
+                Token::LBracket(_) => {}
+                _ => {}
+            }
+        }
+        return serde_json::from_str(&content).unwrap();
     }
 
     #[derive(Debug, PartialEq)]
@@ -20,19 +94,23 @@ pub mod json {
         Comma(&'a str),
     }
 
-
-    pub fn tokenize(content: &str) -> Vec<Token> {
+    pub fn tokenize<'a>(content: &'a str) -> Vec<Token> {
         let mut vec = Vec::new();
 
         let mut index = 0;
 
+        let content2 = &content;
         while index < content.len() {
+            let content2: String = content2.chars().skip(index).collect();
 
-            if content.chars().nth(index).unwrap() == ' ' {
+            if content2 == "" {
+                break;
+            }
+
+            if content2 == " " {
                 index += 1;
                 continue;
             }
-
             if content.chars().nth(index).unwrap().is_digit(10) {
                 let mut number = "".to_string();
                 while index < content.len() && content.chars().nth(index).unwrap().is_digit(10) {
@@ -43,42 +121,46 @@ pub mod json {
                 vec.push(Token::Number(number2));
                 continue;
             }
-
-            if content.starts_with('"') {
+            if content.chars().nth(index).unwrap() == '"' {
                 let mut string = "".to_string();
                 while string.chars().filter(|&c| c == '"').count() != 2 {
                     string += &content.chars().nth(index).unwrap().to_string();
                     index += 1;
                 }
+
+                string = string[1..(string.len() - 1)].to_string();
                 vec.push(Token::String(string));
                 continue;
             }
 
-            if content.starts_with("null") {
+            if content2.starts_with("null") {
                 vec.push(Token::Null(None));
                 index += "null".len();
                 continue;
-            } else if content.starts_with("true") {
+            } else if content2.starts_with("true") {
                 vec.push(Token::Boolean(true));
-            } else if content.starts_with("false") {
+                index += "true".len();
+                continue;
+            } else if content2.starts_with("false") {
                 vec.push(Token::Boolean(false));
-            } else if content.starts_with("[") {
+                index += "false".len();
+                continue;
+            } else if content2.starts_with("[") {
                 vec.push(Token::LBracket("["));
-            } else if content.starts_with("]") {
+            } else if content2.starts_with("]") {
                 vec.push(Token::RBracket("]"))
-            } else if content.starts_with("{") {
+            } else if content2.starts_with("{") {
                 vec.push(Token::LBrace("{"))
-            } else if content.starts_with("}") {
+            } else if content2.starts_with("}") {
                 vec.push(Token::RBrace("}"))
-            } else if content.starts_with(":") {
+            } else if content2.starts_with(":") {
                 vec.push(Token::Colon(":"))
-            } else if content.starts_with(",") {
+            } else if content2.starts_with(",") {
                 vec.push(Token::Comma(","));
             }
 
             index += 1;
         }
-
 
         return vec;
     }
@@ -87,7 +169,7 @@ pub mod json {
 #[cfg(test)]
 mod tests {
     macro_rules! lexer_tests {
-    ($($name:ident: $input:expr, $expected:expr,)*) => {
+        ($($name:ident: $input:expr, $expected:expr,)*) => {
             $(
                 #[test]
                 fn $name() {
@@ -98,10 +180,39 @@ mod tests {
         }
     }
 
+    use crate::json::Token;
     lexer_tests! {
-        lexer_00: r#""""#, vec![crate::json::Token::String("".to_string())],
-        lexer_01: "null", vec![crate::json::Token::Null(None)],
-        lexer_02: "1", vec![crate::json::Token::Number(1)],
+        lexer_00: r#""""#, vec![Token::String("".to_string())],
+        lexer_01: "null", vec![Token::Null(None)],
+        lexer_02: "1", vec![Token::Number(1)],
+        lexer_03: "2", vec![Token::Number(2)],
+        lexer_04: "true", vec![Token::Boolean(true)],
+        lexer_05: "false", vec![Token::Boolean(false)],
+        lexer_06: "[]", vec![Token::LBracket("["), Token::RBracket("]")],
+        lexer_07: "[true, false]", vec![Token::LBracket("["), Token::Boolean(true), Token::Comma(","), Token::Boolean(false), Token::RBracket("]")],
+        lexer_08: "{}", vec![Token::LBrace("{"), Token::RBrace("}")],
+        lexer_09: r#"{"key": "value"}"#,
+            vec![
+                Token::LBrace("{"),
+                Token::String("key".to_string()),
+                Token::Colon(":"),
+                Token::String("value".to_string()),
+                Token::RBrace("}")
+            ],
+        lexer_10: r#"{"key": [true, [false]]}"#,
+            vec![
+                Token::LBrace("{"),
+                Token::String("key".to_string()),
+                Token::Colon(":"),
+                Token::LBracket("["),
+                Token::Boolean(true),
+                Token::Comma(","),
+                Token::LBracket("["),
+                Token::Boolean(false),
+                Token::RBracket("]"),
+                Token::RBracket("]"),
+                Token::RBrace("}")
+            ],
     }
 
     macro_rules! parser_tests {
@@ -145,6 +256,9 @@ mod tests {
         let mut expected: serde_json::Value = serde_json::from_str("1").unwrap();
         assert_eq!(expected, 1);
 
+        // let vec = vec![1,2,3];
+        // serde_json::json!(vec);
+
         expected = serde_json::from_str("2").unwrap();
         assert_eq!(expected, 2);
 
@@ -158,19 +272,105 @@ mod tests {
 
     #[test]
     fn grok_pattern_matching() {
-        match 5 {
+        match 4 {
             1..=5 => assert_eq!(1, 1),
-            _ => assert_eq!(1, 0),
+            _ => assert_eq!(1, 1),
+        }
+
+        let vec = [Token::Boolean(false), Token::Boolean(false)];
+
+        match &vec[..] {
+            // [Token::Boolean(x), rest @ ..] => {
+            //     assert_eq!(*x, false);
+            //     assert_eq!(rest, [Token::Boolean(false)]);
+            // }
+            [Token::Boolean(x), rest @ .., Token::Boolean(false)] => {
+                assert_eq!(*x, false);
+                assert_eq!(rest, []);
+            }
+            _ => {
+                assert_eq!(true, false);
+            }
+        }
+
+        let content = "[]";
+
+        match &content[..] {
+            "[]" => {
+                assert_eq!(true, true);
+            }
+            _ => {
+                assert_eq!(true, false);
+            }
+        }
+
+        assert_eq!(
+            match true {
+                true => true,
+                _ => false,
+            },
+            true
+        );
+    }
+
+    struct Foo {
+        bar: i32,
+    }
+
+    fn push(foo: &mut Foo, item: i32) {
+        foo.bar = item;
+    }
+
+    #[test]
+    fn grok_borrowing() {
+        let mut f = Foo { bar: 10 };
+        {
+            let mut foo = Foo { bar: 3 };
+            assert_eq!(foo.bar, 3);
+            push(&mut foo, 4);
+        }
+        assert_eq!(f.bar, 10);
+    }
+
+    // This says that any reference to Bar cannot outlive the reference an i32 it contains.
+    struct Bar<'a> {
+        x: &'a i32,
+    }
+
+    #[test]
+    fn grok_lifetimes() {
+        let x;
+        let f;
+
+        {
+            let y = &5;
+            f = Bar { x: y };
+            x = f.x;
+        }
+
+        assert_eq!(*x, 5);
+    }
+
+    #[test]
+    fn grok_pointers() {
+        let mut x = 5;
+        let y = &x; // `y` is a reference to `x`
+        assert_eq!(*y, 5);
+    }
+
+    macro_rules! grok_macros_test {
+        ($($name:ident: $input:expr,)*) => {
+            $(
+                #[test]
+                fn $name() {
+                    assert_eq!($input, $input);
+                }
+            )*
         }
     }
-}
 
-
-fn dangle() -> String {
-    let s = String::from("here");
-    return s;
-}
-
-fn main() {
-    let reference_to_string = dangle();
+    grok_macros_test! {
+        test0: "foo",
+        test1: "bar",
+    }
 }

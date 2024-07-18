@@ -5,8 +5,9 @@ fn main() {
 
     let foo = "111111110";
     let mut index = 0;
-    let foo = "\"\"";
-    println!("{}", foo);
+    let foo = "asdf";
+    let bar: String = foo.chars().skip(2).collect();
+    println!("{}", bar);
 
     // for b in (&a[..a.len() - 1]).chars() {
     //     println!("{}", b);
